@@ -1,3 +1,8 @@
+## Autor ✒️
+
+* **Francisco Soares De Sousa Neto (PROFESSOR)** - *WEBII*
+* **Juliana Marques** -  ADS 3° Periodo
+
 
 #API com Docker Compose
 
@@ -91,67 +96,95 @@ Este é um projeto de API para gerenciamento de tarefas, desenvolvido com **Node
 
 O servidor será iniciado em: `http://localhost:3000`
 
-## 🌍 Endpoints disponíveis:
+## Executando a Aplicação com Docker Compose 🚀
 
-### 1️⃣ Rota Inicial
-- **Método:** `GET`
-- **URL:** `/`
-- **Descrição:** Testa se a API está funcionando.
-- **Resposta:** `"API de tarefas funcionando!"`
+1.  **Construa as imagens e inicie os contêineres:**
+    No diretório raiz do projeto (onde está o `docker-compose.yml`), execute:
+    ```bash
+    docker compose up --build
+    ```
+    O parâmetro `--build` força a reconstrução das imagens. Para execuções subsequentes sem alterações no `Dockerfile` ou dependências, `docker compose up` é suficiente.
+    Para rodar em segundo plano (detached mode):
+    ```bash
+    docker compose up -d --build
+    ```
 
-### 2️⃣ Listar todas as tarefas
-- **Método:** `GET`
-- **URL:** `/tarefas`
-- **Descrição:** Retorna todas as tarefas cadastradas.
+2.  **Execução das Migrações:**
+    Se você estiver usando um `entrypoint.sh` configurado no `Dockerfile` para rodar as migrações automaticamente ao iniciar o contêiner `app` (após o banco estar pronto), elas já devem ter sido executadas.
+    Caso precise executar manualmente (com os contêineres rodando após `docker compose up -d`):
+    ```bash
+    docker compose exec app npx sequelize-cli db:migrate
+    ```
 
-### 3️⃣ Listar uma tarefa por ID
-- **Método:** `GET`
-- **URL:** `/tarefas/:id`
-- **Descrição:** Retorna uma tarefa específica pelo ID.
+3.  **Acessando a API:**
+    * A API estará disponível em: `http://localhost:3000` (ou a porta configurada na variável `PORT`).
+    * A documentação Swagger/OpenAPI (se implementada) geralmente fica em `http://localhost:3000/api-docs`.
 
-### 4️⃣ Criar uma nova tarefa
-- **Método:** `POST`
-- **URL:** `/tarefas`
-- **Descrição:** Cria uma nova tarefa.
-- **Corpo da requisição (JSON):**
-  ```json
-  {
-    "titulo": "Nova Tarefa",
-    "descricao": "Descrição da nova tarefa",
-    "concluida": false
-  }
-  ```
+4.  **Parando a Aplicação:**
+    * Se estiver rodando em primeiro plano, pressione `Ctrl+C` no terminal onde `docker compose up` foi executado.
+    * Para parar os contêineres (se rodando em detached mode ou de outro terminal):
+        ```bash
+        docker compose down
+        ```
+    * Para parar e remover os volumes (ATENÇÃO: isso apagará os dados do banco de dados):
+        ```bash
+        docker compose down -v
+        ```
 
-### 5️⃣ Atualizar uma tarefa por ID
-- **Método:** `PUT`
-- **URL:** `/tarefas/:id`
-- **Descrição:** Atualiza uma tarefa específica pelo ID.
-- **Corpo da requisição (JSON):**
-  ```json
-  {
-    "titulo": "Tarefa Atualizada",
-    "descricao": "Descrição atualizada",
-    "concluida": true
-  }
-  ```
+## Testando os Endpoints 🧪
 
-### 6️⃣ Marcar uma tarefa como concluída
-- **Método:** `PATCH`
-- **URL:** `/tarefas/:id/concluir`
-- **Descrição:** Marca uma tarefa como concluída.
+Você pode utilizar ferramentas como [Postman](https://www.postman.com/), [Insomnia](https://insomnia.rest/), ou o `curl` para testar os endpoints.
 
-### 7️⃣ Deletar uma tarefa por ID
-- **Método:** `DELETE`
-- **URL:** `/tarefas/:id`
-- **Descrição:** Remove uma tarefa específica pelo ID.
+**Exemplos de Requisições `curl`:**
 
-### 8️⃣ Rota inválida (404)
-- **Descrição:** Qualquer rota não definida retornará:
-  ```json
-  {
-    "mensagem": "Rota não encontrada."
-  }
-  ```
+* **Listar Usuários (paginado):**
+    ```bash
+    curl -X GET "http://localhost:3000/api/usuarios?page=1&limit=5"
+    ```
+* **Criar Novo Usuário:**
+    ```bash
+    curl -X POST http://localhost:3000/api/usuarios \
+    -H "Content-Type: application/json" \
+    -d '{
+      "name": "Usuário Teste",
+      "email": "teste@exemplo.com",
+      "password": "senha123"
+    }'
+    ```
+* **Obter Usuário por ID (ex: ID 1):**
+    ```bash
+    curl -X GET http://localhost:3000/api/usuarios/1
+    ```
+* **Atualizar Usuário (ex: ID 1):**
+    ```bash
+    curl -X PUT http://localhost:3000/api/usuarios/1 \
+    -H "Content-Type: application/json" \
+    -d '{
+      "name": "Usuário Teste Atualizado"
+    }'
+    ```
+* **Deletar Usuário (ex: ID 1):**
+    ```bash
+    curl -X DELETE http://localhost:3000/api/usuarios/1
+    ```
+
+### Cenários de Erro a Testar:
+* Criar usuário com email já existente (esperado: 409 Conflict).
+* Criar usuário com dados inválidos, e.g., email inválido, senha curta (esperado: 422 Unprocessable Entity ou 400 Bad Request).
+* Buscar/atualizar/deletar usuário com ID inexistente (esperado: 404 Not Found).
+* Buscar/atualizar/deletar usuário com ID em formato inválido (esperado: 400 Bad Request).
+
+## Documentação da API (Swagger/OpenAPI) 📖
+
+*(Esta seção deve ser preenchida se você implementou a documentação com Swagger/OpenAPI. Descreva como acessá-la e, se possível, inclua um link para a especificação gerada ou para a UI).*
+
+**Exemplo:**
+A documentação interativa da API está disponível via Swagger UI em:
+`http://localhost:3000/api-docs`
+
+A especificação OpenAPI (JSON) pode ser encontrada em:
+`http://localhost:3000/api-docs.json` (ou o caminho configurado)
+
 
 ## Tecnologias Utilizadas ⚙️
 
@@ -184,8 +217,4 @@ A API expõe os seguintes endpoints para gerenciamento de usuários:
 * Retorno de códigos de status HTTP apropriados (200, 201, 400, 404, 409, 422, 500).
 * Mensagens de erro descritivas em formato JSON.
 envolvimento)
->>>>>>> f0d09a7 (Primeiro commit: API de Tarefas)
-=======
-# api-tarefas
-API para gerenciamento de tarefas com Node.js e Express.
->>>>>>> 3d512f7 (Initial commit)
+
